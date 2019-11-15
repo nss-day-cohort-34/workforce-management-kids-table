@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -128,7 +129,8 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            Computer ChosenComputer = GetSingleComputer(id);
+            return View(ChosenComputer);
         }
 
         // POST: Computer/Delete/5
@@ -138,9 +140,36 @@ namespace WorkforceManagement.Controllers
         {
             try
             {
-                // TODO: Add delete logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
 
-                return RedirectToAction(nameof(Index));
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT c.id AS 'Computer ID', e.id AS 'employeeId' FROM ComputerEmployee ce JOIN Employee e ON e.Id = ce.EmployeeId JOIN Computer c ON c.id = ce.ComputerId WHERE c.id = @";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        if (!reader.IsDBNull(0))
+                        {
+                            MessageBox.Show("Can not open connection! ");
+
+                        } else
+                        {
+                            using (SqlCommand cmdd = conn.CreateCommand())
+                            {
+                                cmdd.CommandText = @"DELETE FROM Computer WHERE Id = @id";
+                                cmdd.Parameters.Add(new SqlParameter("@id", id));
+
+                                
+                        }
+                        reader.Close();
+                    } 
+                    
+                        return RedirectToAction(nameof(Index));
+
+                    
+                    }
+                }
             }
             catch
             {
