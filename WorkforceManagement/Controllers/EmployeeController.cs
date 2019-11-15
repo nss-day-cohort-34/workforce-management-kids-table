@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using WorkforceManagement.Models;
+using WorkforceManagement.Models.ViewModels;
 
 namespace WorkforceManagement.Controllers
 {
@@ -84,18 +85,37 @@ namespace WorkforceManagement.Controllers
         // GET: Employee/Create
         public ActionResult Create()
         {
-            return View();
+            var viewModel = new EmployeeCreateViewModel()
+            {
+                Departments = GetAllDepartments()
+            };
+
+            return View(viewModel);
         }
 
         // POST: Employee/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(EmployeeCreateViewModel viewModel)
         {
             try
             {
-                // TODO: Add insert logic here
-
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Employee
+                                            ( FirstName, LastName, IsSupervisor, DepartmentId )
+                                            VALUES
+                                            ( @firstName, @lastName, @departmentId, @isSupervisor )";
+                        cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.Employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.Employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@isSupervisor", viewModel.Employee.IsSupervisor));
+                        cmd.Parameters.Add(new SqlParameter("@departmentId", viewModel.Employee.DepartmentId));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -225,6 +245,32 @@ namespace WorkforceManagement.Controllers
                     reader.Close();
 
                     return anEmployee;
+                }
+            }
+        }
+        private List<Department> GetAllDepartments()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Id, Name FROM Department";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Department> departments = new List<Department>();
+                    while (reader.Read())
+                    {
+                        departments.Add(new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                        });
+                    }
+
+                    reader.Close();
+
+                    return departments;
                 }
             }
         }
