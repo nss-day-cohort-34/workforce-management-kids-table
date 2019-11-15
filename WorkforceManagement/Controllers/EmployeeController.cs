@@ -148,5 +148,51 @@ namespace WorkforceManagement.Controllers
                 return View();
             }
         }
+        private Employee GetEmployeeById(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                        SELECT e.Id,
+                                            e.FirstName,
+                                            e.LastName,
+                                            e.IsSupervisor,
+                                            e.DepartmentId,
+                                            d.Name AS DepartmentName
+                                        FROM Employee e
+                                        LEFT JOIN Department d on e.DepartmentId = d.Id
+                                        WHERE e.Id = @id
+                                      ";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Employee> employees = new List<Employee>();
+                    while (reader.Read())
+                    {
+                        Employee employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            Department = new Department()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                            }
+                        };
+
+                        employees.Add(employee);
+                    }
+
+                    reader.Close();
+
+                    return View(employees);
+                }
+            }
+        }
     }
 }
