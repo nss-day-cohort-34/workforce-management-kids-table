@@ -77,7 +77,8 @@ namespace WorkforceManagement.Controllers
         // GET: Employee/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            Employee anEmployee = GetEmployeeById(id);
+            return View(anEmployee);
         }
 
         // GET: Employee/Create
@@ -156,41 +157,74 @@ namespace WorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                                        SELECT e.Id,
+                                        SELECT e.Id AS EmployeeId,
                                             e.FirstName,
                                             e.LastName,
                                             e.IsSupervisor,
                                             e.DepartmentId,
-                                            d.Name AS DepartmentName
+                                            d.Name AS DepartmentName,
+	                                        ce.ComputerId, c.Make, c.Manufacturer, c.PurchaseDate,
+	                                        ce.AssignDate, ce.UnassignDate,
+	                                        et.TrainingProgramId, t.Name AS TrainingProgramName,
+	                                        t.StartDate, t.EndDate
                                         FROM Employee e
                                         LEFT JOIN Department d on e.DepartmentId = d.Id
+                                        LEFT JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
+                                        LEFT JOIN Computer c on c.Id = ce.ComputerId
+                                        LEFT JOIN EmployeeTraining et on et.EmployeeId = e.Id
+                                        LEFT JOIN TrainingProgram t on et.TrainingProgramId = t.Id
                                         WHERE e.Id = @id
                                       ";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    List<Employee> employees = new List<Employee>();
+                    Employee anEmployee = null;
+                    Computer aComputer = null;
                     while (reader.Read())
                     {
-                        Employee employee = new Employee
+                        if (anEmployee == null)
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
-                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                            Department = new Department()
+                            anEmployee = new Employee
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
-                            }
-                        };
-
-                        employees.Add(employee);
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Department = new Department()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                                }
+                            };
+                        }
+                        if (aComputer == null && !reader.IsDBNull(reader.GetOrdinal("AssignDate")) && reader.IsDBNull(reader.GetOrdinal("UnassignDate")))
+                        {
+                            aComputer = new Computer()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))
+                            };
+                            anEmployee.Computer = aComputer;
+                        }
+                        if (!reader.IsDBNull(reader.GetOrdinal("TrainingProgramId")))
+                        {
+                            TrainingProgram aTrainingProgram = new TrainingProgram()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                                Name = reader.GetString(reader.GetOrdinal("TrainingProgramName")),
+                                StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate"))
+                            };
+                            anEmployee.TrainingPrograms.Add(aTrainingProgram);
+                        }
                     }
 
                     reader.Close();
 
-                    return View(employees);
+                    return anEmployee;
                 }
             }
         }

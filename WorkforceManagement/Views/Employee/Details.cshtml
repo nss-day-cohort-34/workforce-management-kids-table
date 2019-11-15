@@ -1,0 +1,96 @@
+﻿@model WorkforceManagement.Models.Employee
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Employee</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.FirstName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.FirstName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.LastName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.LastName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.IsSupervisor)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.IsSupervisor)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DepartmentId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Department.Name)
+        </dd>
+        @if(Model.Computer != null)
+        {
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Computer)
+            </dt>
+            <dd class="col-sm-10">
+                @{
+                    var computer = $"{Model.Computer.Manufacturer} {Model.Computer.Make}";
+                    @Html.DisplayFor(model => computer);
+                 }
+            </dd>
+        }
+    </dl>
+    @if(Model.TrainingPrograms.Count > 0)
+    {
+        <h5>Training Programs</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TrainingPrograms[0].Name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TrainingPrograms[0].StartDate)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TrainingPrograms[0].EndDate)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.TrainingPrograms)
+                {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @{
+                            var startDate = item.StartDate.ToShortDateString();
+                            @Html.DisplayFor(modelItem => startDate);
+                         }
+                    </td>
+                    <td>
+                        @{
+                            var endDate = item.StartDate.ToShortDateString();
+                            @Html.DisplayFor(modelItem => endDate);
+                         }
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+     }
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-action="Index">Back to List</a>
+</div>
