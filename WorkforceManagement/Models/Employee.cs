@@ -13,7 +13,6 @@ namespace WorkforceManagement.Models
         public bool IsSupervisor { get; set; }
         public int DepartmentId { get; set; }
         public Department Department { get; set; }
-        public int? ComputerId { get; set; }
         public Computer Computer { get; set; }
         public List<TrainingProgram> TrainingPrograms { get; set; } = new List<TrainingProgram>();
     }
