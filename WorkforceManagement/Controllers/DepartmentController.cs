@@ -35,9 +35,9 @@ namespace WorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                                            SELECT Id,
-                                                Name, Budget
-                                            FROM Department
+                                       SELECT d.Id, d.Name, d.Budget, Count(e.Id) as EmployeeCount
+                                       FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                       Group By d.Id, d.Name, d.Budget
                                         ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -49,6 +49,7 @@ namespace WorkforceManagement.Controllers
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            EmployeeCount = reader.GetInt32(reader.GetOrdinal("EmployeeCount"))
                         };
 
                         departments.Add(department);
@@ -61,26 +62,76 @@ namespace WorkforceManagement.Controllers
             };
         }
 
-        // GET: Department/Details/5
+        //GET: Department/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT d.Id as DepId, 
+                                                d.Name, 
+                                                d.Budget, 
+                                                e.Id as EmployeeId, 
+                                                e.FirstName,   
+                                                e.LastName 
+                                        FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                        WHERE d.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    Department department = null;
+                    while (reader.Read())
+                    {
+                        if (department == null)
+                        {
+                            department = new Department
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("DepId")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            };
+                        }
+                        var emp = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                        };
+                        department.Employees.Add(emp);
+                    }
+                    reader.Close();
+                    return View(department);
+                }
+            }
         }
 
-        // GET: Department/Create
+        //GET: Department/Create
         public ActionResult Create()
         {
-            return View();
+            var viewModel = new Department();
+            return View(viewModel);
         }
 
         // POST: Department/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Department newDepartment)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Department (Name, Budget) Values (@name, @budget)";
+                        cmd.Parameters.Add(new SqlParameter("@name", newDepartment.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", newDepartment.Budget));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
