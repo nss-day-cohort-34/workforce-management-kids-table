@@ -68,19 +68,33 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Create
         public ActionResult Create()
         {
-            return View();
+            return View( new Computer());
         }
 
         // POST: Computer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Computer computer)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Computer 
+                           (Make, Manufacturer, PurchaseDate, DecomissionDate)
+                                              
+                                                VALUES (@make, @manufacturer, @purchaseDate, null)";
+                        cmd.Parameters.Add(new SqlParameter("@make", computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@manufacturer", computer.Manufacturer));
+                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", computer.PurchaseDate));
 
-                return RedirectToAction(nameof(Index));
+                        cmd.ExecuteNonQuery();
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
