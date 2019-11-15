@@ -12,6 +12,7 @@ namespace WorkforceManagement.Models
         public string Manufacturer { get; set; }
         public DateTime PurchaseDate { get; set; }
         public DateTime? DecommissionDate { get; set; }
+        public Employee employee { get; set; }
 
     }
 }

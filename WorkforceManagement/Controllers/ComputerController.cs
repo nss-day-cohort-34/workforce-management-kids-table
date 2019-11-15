@@ -61,7 +61,8 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            Computer computer = GetSingleComputer(id);
+            return View(computer);
         }
 
         // GET: Computer/Create
@@ -130,6 +131,42 @@ namespace WorkforceManagement.Controllers
             catch
             {
                 return View();
+            }
+        }
+        private Computer GetSingleComputer(int id)
+        {
+            Computer computer= null;
+          
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                      SELECT Id, Make, Manufacturer, PurchaseDate FROM Computer WHERE Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        computer = new Computer()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                        };
+
+                      
+
+
+                    }
+            
+
+                    reader.Close();
+
+                    return computer;
+                }
             }
         }
     }
