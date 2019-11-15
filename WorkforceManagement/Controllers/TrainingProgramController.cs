@@ -66,7 +66,55 @@ namespace WorkforceManagement.Controllers
         // GET: TrainingProgram/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT tp.Id, tp.Name, tp.StartDate, tp.EndDate, tp.MaxAttendees, 
+                                                e.Id as 'EmployeeId', e.FirstName, e.LastName, e.DepartmentId, 
+                                                d.Name as 'DeptName'
+                                        FROM TrainingProgram tp LEFT JOIN EmployeeTraining et ON tp.Id = et.TrainingProgramId
+						                LEFT JOIN Employee e on et.EmployeeId = e.Id
+						                LEFT JOIN Department d on e.DepartmentId = d.Id
+                                        WHERE tp.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    while (reader.Read())
+                    {
+                        if (trainingProgram == null)
+                        {
+                            trainingProgram = new TrainingProgram
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                                MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                            };
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        {
+                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
+                            if (!trainingProgram.Employees.Any(e => e.Id == employeeId))
+                            {
+                                Employee employee = new Employee
+                                {
+
+                                };
+                            }
+                        }
+                        
+                    }
+
+                    reader.Close();
+                    return View(exercise);
+                }
+            }
         }
 
         // GET: TrainingProgram/Create
