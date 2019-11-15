@@ -69,7 +69,7 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Create
         public ActionResult Create()
         {
-            return View( new Computer());
+            return View(new Computer());
         }
 
         // POST: Computer/Create
@@ -146,31 +146,35 @@ namespace WorkforceManagement.Controllers
 
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT c.id AS 'Computer ID', e.id AS 'employeeId' FROM ComputerEmployee ce JOIN Employee e ON e.Id = ce.EmployeeId JOIN Computer c ON c.id = ce.ComputerId WHERE c.id = @";
+                        cmd.CommandText = "SELECT c.id AS 'Computer ID', e.id AS 'employeeId' FROM ComputerEmployee ce JOIN Employee e ON e.Id = ce.EmployeeId JOIN Computer c ON c.id = ce.ComputerId WHERE c.id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
                         SqlDataReader reader = cmd.ExecuteReader();
-                        if (!reader.IsDBNull(0))
+                        if (!reader.Read())
                         {
-                            MessageBox.Show("Can not open connection! ");
 
-                        } else
-                        {
-                            using (SqlCommand cmdd = conn.CreateCommand())
+                            cmd.CommandText = @"DELETE FROM Computer WHERE Id = @id";
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                            int rowsAffected = cmd.ExecuteNonQuery();
+                            if (rowsAffected > 0)
                             {
-                                cmdd.CommandText = @"DELETE FROM Computer WHERE Id = @id";
-                                cmdd.Parameters.Add(new SqlParameter("@id", id));
-
-                                
+                                return RedirectToAction(nameof(Index));
+                            }
+                            reader.Close();
+                            throw new Exception("No rows affected");
+                         
                         }
-                        reader.Close();
-                    } 
-                    
-                        return RedirectToAction(nameof(Index));
+                        else
+                        {
+                            throw new Exception("This computer has a user");
+                        }
 
-                    
                     }
                 }
             }
+
+
+
             catch
             {
                 return View();
@@ -178,8 +182,8 @@ namespace WorkforceManagement.Controllers
         }
         private Computer GetSingleComputer(int id)
         {
-            Computer computer= null;
-          
+            Computer computer = null;
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
@@ -213,7 +217,7 @@ namespace WorkforceManagement.Controllers
 
 
                     }
-            
+
 
                     reader.Close();
 
