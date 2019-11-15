@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using WorkforceManagement.Models;
 
 namespace WorkforceManagement.Controllers
 {
@@ -37,6 +38,17 @@ namespace WorkforceManagement.Controllers
                                         FROM TrainingProgram
                                         WHERE StartDate > GETDATE()";
                     SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+                            // build out training program
+                        }
+
+                    }
 
 
                     return View();
