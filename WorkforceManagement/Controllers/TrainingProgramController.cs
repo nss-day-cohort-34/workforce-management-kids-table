@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using WorkforceManagement.Models;
+using WorkforceManagement.Models.ViewModels;
 
 namespace WorkforceManagement.Controllers
 {
@@ -77,11 +78,23 @@ namespace WorkforceManagement.Controllers
         // POST: TrainingProgram/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(TrainingProgramCreateView newTrainingProgram)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "INSERT INTO TrainingProgram (Name, StartDate, EndDate, MaxAttendees)                       VALUES (@name, @startDate, @endDate, @maxAttendees)";
+                        cmd.Parameters.Add(new SqlParameter("@name", newTrainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", newTrainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", newTrainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", newTrainingProgram.MaxAttendees));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
