@@ -104,15 +104,20 @@ namespace WorkforceManagement.Controllers
                             {
                                 Employee employee = new Employee
                                 {
-
+                                    Id = employeeId,
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"))
                                 };
+
+                                trainingProgram.Employees.Add(employee);
                             }
                         }
                         
                     }
 
                     reader.Close();
-                    return View(exercise);
+                    return View(trainingProgram);
                 }
             }
         }
@@ -155,14 +160,29 @@ namespace WorkforceManagement.Controllers
         // GET: TrainingProgram/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            // Get the training program
+            TrainingProgram trainingProgram = GetTrainingProgram(id);
+            DateTime currentDate = DateTime.Now;
+
+            // Check if training program start date is in the future. If it is, instatiate the EditView so it can be edited, otherwise take the user 
+            if (trainingProgram.StartDate > currentDate)
+            {
+                TrainingProgramEditView viewModel = new TrainingProgramEditView
+                {
+                    TrainingProgram = trainingProgram
+                };
+                return View(viewModel);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: TrainingProgram/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, TrainingProgramEditView viewModel)
         {
+            TrainingProgram trainingProgram = viewModel.TrainingProgram;
             try
             {
                 // TODO: Add update logic here
@@ -195,6 +215,38 @@ namespace WorkforceManagement.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+        private TrainingProgram GetTrainingProgram(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT tp.Id, tp.Name, tp.StartDate, tp.EndDate, tp.MaxAttendees                               FROM TrainingProgram tp
+                                        WHERE tp.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    if (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+                    }
+
+                    reader.Close();
+                    return trainingProgram;
+                }
             }
         }
     }
