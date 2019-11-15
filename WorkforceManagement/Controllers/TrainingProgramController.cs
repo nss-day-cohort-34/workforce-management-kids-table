@@ -46,12 +46,18 @@ namespace WorkforceManagement.Controllers
                         TrainingProgram trainingProgram = new TrainingProgram
                         {
                             // build out training program
-                        }
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
 
+                        trainingPrograms.Add(trainingProgram);
                     }
+                    reader.Close();
 
-
-                    return View();
+                    return View(trainingPrograms);
                 }
             }
         }
