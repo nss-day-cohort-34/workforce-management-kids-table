@@ -48,13 +48,7 @@
         <a asp-action="Index">Back to List</a>
     </form>
 
-
+    <div class="text-danger">    @TempData["ErrorMessage"] </div>
 </div>
-<script>
-    if ('@TempData["Success"]' == true)
-{
-    alert("This computer cannot be deleted because it is currently or previously assigned to an employee");
 
-    };
 
-</script>

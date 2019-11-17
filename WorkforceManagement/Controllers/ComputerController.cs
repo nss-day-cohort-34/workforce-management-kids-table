@@ -140,7 +140,8 @@ namespace WorkforceManagement.Controllers
         {
             try
             {
-                
+                var errMsg = TempData["ErrorMessage"] as string;
+
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
@@ -157,9 +158,12 @@ namespace WorkforceManagement.Controllers
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                        
-                        if (rowsAffected == 0)
+
+                        if (rowsAffected > 0)
                         {
-                            TempData["Success"] = true;
+
+                            TempData["ErrorMessage"] = "This computer cannot be deleted because it is currently or previously assigned to an employee";
+
                         }
 
                         return RedirectToAction(nameof(Index));
