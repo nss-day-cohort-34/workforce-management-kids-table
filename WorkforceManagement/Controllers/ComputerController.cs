@@ -136,45 +136,36 @@ namespace WorkforceManagement.Controllers
         // POST: Computer/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id, Computer computer)
         {
             try
             {
+                
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
 
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT c.id AS 'Computer ID', e.id AS 'employeeId' FROM ComputerEmployee ce JOIN Employee e ON e.Id = ce.EmployeeId JOIN Computer c ON c.id = ce.ComputerId WHERE c.id = @id";
+                        cmd.CommandText = @"DELETE Computer
+                                            FROM Computer c
+                                            LEFT JOIN ComputerEmployee ce
+                                            ON c.Id = ce.ComputerId
+                                            WHERE ce.ComputerId IS NULL
+                                            AND c.Id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
-                        SqlDataReader reader = cmd.ExecuteReader();
-                        if (!reader.Read())
-                        {
 
-                            cmd.CommandText = @"DELETE FROM Computer WHERE Id = @id";
-                            cmd.Parameters.Add(new SqlParameter("@id", id));
-
-                            int rowsAffected = cmd.ExecuteNonQuery();
-                            if (rowsAffected > 0)
-                            {
-                                return RedirectToAction(nameof(Index));
-                            }
-                            reader.Close();
-                            throw new Exception("No rows affected");
-                         
-                        }
-                        else
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                       
+                        if (rowsAffected == 0)
                         {
-                            throw new Exception("This computer has a user");
+                            TempData["Success"] = true;
                         }
 
+                        return RedirectToAction(nameof(Index));
                     }
                 }
-            }
-
-
-
+            }   
             catch
             {
                 return View();
