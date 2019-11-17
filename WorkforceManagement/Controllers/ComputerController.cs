@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using WorkforceManagement.Models;
+using WorkforceManagement.Models.ViewModels;
 
 namespace WorkforceManagement.Controllers
 {
@@ -69,13 +71,27 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Create
         public ActionResult Create()
         {
-            return View(new Computer());
+            var viewModel = new ComputerCreateViewModel();
+           var Employees = GetEmployees()
+                .Select(employee => new SelectListItem
+                 {
+                     Text = $"{ employee.FirstName } { employee.LastName }",
+                     Value = employee.Id.ToString()
+                 })
+                .ToList();
+
+            Employees.Insert(0, new SelectListItem
+            {
+                Text = "Assign employee",
+                Value = "0"
+            });
+            return View(viewModel);
         }
 
         // POST: Computer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Computer computer)
+        public ActionResult Create(ComputerCreateViewModel viewModel)
         {
             try
             {
@@ -88,11 +104,35 @@ namespace WorkforceManagement.Controllers
                            (Make, Manufacturer, PurchaseDate, DecomissionDate)
                                               
                                                 VALUES (@make, @manufacturer, @purchaseDate, null)";
-                        cmd.Parameters.Add(new SqlParameter("@make", computer.Make));
-                        cmd.Parameters.Add(new SqlParameter("@manufacturer", computer.Manufacturer));
-                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", computer.PurchaseDate));
+                        cmd.Parameters.Add(new SqlParameter("@make", viewModel.computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
+                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
 
-                        cmd.ExecuteNonQuery();
+                        int compId = (int)cmd.ExecuteScalar();
+                        viewModel.computer.Id = compId;
+
+
+                        if (viewModel.employeeId != 0)
+                        {
+                            cmd.CommandText = @"INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate)
+                                                OUTPUT INSERTED.Id
+                                                VALUES (@employeeId, @computerId, @assignDate, null)";
+                            DateTime currentDate = DateTime.Now;
+                            cmd.Parameters.Add(new SqlParameter("@employeeId", viewModel.employeeId));
+                            cmd.Parameters.Add(new SqlParameter("@computerId", compId));
+                            cmd.Parameters.Add(new SqlParameter("@assignDate", currentDate));
+
+
+                            int newCEId = (int)cmd.ExecuteScalar();
+
+                            cmd.CommandText = @"UPDATE ComputerEmployee SET UnassignDate = @unassignDate WHERE employeeID = @employeeId AND computerId != @computerId";
+
+                            cmd.Parameters.Add(new SqlParameter("@unassignDate", currentDate));
+
+                            cmd.ExecuteScalar();
+                        }
+
+
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -173,6 +213,31 @@ namespace WorkforceManagement.Controllers
                 return View();
             }
         }
+        private List<Employee> GetEmployees()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Id, FirstName, LastName FROM Employee";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Employee> employees = new List<Employee>();
+                    while (reader.Read())
+                    {
+                        employees.Add(new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                        });
+                    }
+
+                    reader.Close();
+
+                    return employees;
+                } } } 
         private Computer GetSingleComputer(int id)
         {
             Computer computer = null;
