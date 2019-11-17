@@ -157,19 +157,17 @@ namespace WorkforceManagement.Controllers
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
-                       
+
 
                         if (rowsAffected > 0)
                         {
-
                             TempData["ErrorMessage"] = "This computer cannot be deleted because it is currently or previously assigned to an employee";
-
                         }
 
                         return RedirectToAction(nameof(Index));
                     }
                 }
-            }   
+            }
             catch
             {
                 return View();
