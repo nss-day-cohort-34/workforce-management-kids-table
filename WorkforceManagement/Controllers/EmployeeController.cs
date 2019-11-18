@@ -189,6 +189,11 @@ namespace WorkforceManagement.Controllers
                 return View();
             }
         }
+
+        public ActionResult AssignToTP(int id)
+        {
+
+        }
         private Employee GetEmployeeById(int id)
         {
             using (SqlConnection conn = Connection)

@@ -34,7 +34,7 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Department.Name)
         </dd>
-        @if(Model.Computer != null)
+        @if (Model.Computer != null)
         {
             <dt class="col-sm-2">
                 @Html.DisplayNameFor(model => model.Computer)
@@ -43,11 +43,11 @@
                 @{
                     var computer = $"{Model.Computer.Manufacturer} {Model.Computer.Make}";
                     @Html.DisplayFor(model => computer);
-                 }
+                }
             </dd>
         }
     </dl>
-    @if(Model.TrainingPrograms.Count > 0)
+    @if (Model.TrainingPrograms.Count > 0)
     {
         <h5>Training Programs</h5>
         <table class="table">
@@ -68,27 +68,31 @@
             <tbody>
                 @foreach (var item in Model.TrainingPrograms)
                 {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Name)
-                    </td>
-                    <td>
-                        @{
-                            var startDate = item.StartDate.ToShortDateString();
-                            @Html.DisplayFor(modelItem => startDate);
-                         }
-                    </td>
-                    <td>
-                        @{
-                            var endDate = item.StartDate.ToShortDateString();
-                            @Html.DisplayFor(modelItem => endDate);
-                         }
-                    </td>
-                </tr>
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @{
+                                var startDate = item.StartDate.ToShortDateString();
+                                @Html.DisplayFor(modelItem => startDate);
+                            }
+                        </td>
+                        <td>
+                            @{
+                                var endDate = item.StartDate.ToShortDateString();
+                                @Html.DisplayFor(modelItem => endDate);
+                            }
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
-     }
+    }
+</div>
+<div>
+    @Html.ActionLink("Assign to Training Program", "AssignToTP", new { id = Model.Id }) |
+    <a asp-action="Index">Back to List</a>
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
