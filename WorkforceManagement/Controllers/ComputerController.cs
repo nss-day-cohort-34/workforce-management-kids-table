@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using WorkforceManagement.Models;
+using WorkforceManagement.Models.ViewModels;
 
 namespace WorkforceManagement.Controllers
 {
@@ -28,35 +30,62 @@ namespace WorkforceManagement.Controllers
             }
         }
         // GET: Computer
-        public ActionResult Index()
+        public ActionResult Index(string searchString)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Id, Make, Manufacturer FROM Computer";
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    List<Computer> computers = new List<Computer>();
-                    Computer computer = null;
-
-                    while (reader.Read())
+                    if (!String.IsNullOrEmpty(searchString))
                     {
-                        computer = new Computer
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                        };
-
-
-                        computers.Add(computer);
+                        cmd.CommandText = @"SELECT c.Id as 'ComputerId', c.Make, c.Manufacturer, 
+                         e.id as 'EmployeeId', e.FirstName, e.LastName, ce.AssignDate, ce.UnassignDate
+                        FROM Computer c LEFT JOIN ComputerEmployee ce ON CE.ComputerId = c.Id
+                         LEFT JOIN Employee e ON ce.employeeId = e.Id WHERE Make LIKE @searchString OR Manufacturer LIKE @searchString";
+                        cmd.Parameters.Add(new SqlParameter("@searchString", searchString));
                     }
-                    reader.Close();
-                    return View(computers);
+                    else
+                    {
+                        cmd.CommandText = @"SELECT c.Id as 'ComputerId', c.Make, c.Manufacturer, 
+                         e.id as 'EmployeeId', e.FirstName, e.LastName, ce.AssignDate, ce.UnassignDate
+                        FROM Computer c LEFT JOIN ComputerEmployee ce ON CE.ComputerId = c.Id
+                         LEFT JOIN Employee e ON ce.employeeId=e.Id";
+                    }
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        List<Computer> computers = new List<Computer>();
+                        Computer computer = null;
+                        Employee employee = null;
+                    
+
+                        while (reader.Read())
+                        {
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
+                            };
+
+
+                            computers.Add(computer);
+                            if (reader.IsDBNull(reader.GetOrdinal("UnassignDate")) && !reader.IsDBNull(reader.GetOrdinal("assignDate")))
+                            {
+                                employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                                };
+                                computer.employee = employee;
+                            }
+                        }
+                        reader.Close();
+                        return View(computers);
+                    }
                 }
             }
-        }
+        
 
 
         // GET: Computer/Details/5
@@ -69,13 +98,29 @@ namespace WorkforceManagement.Controllers
         // GET: Computer/Create
         public ActionResult Create()
         {
-            return View(new Computer());
+            var viewModel = new ComputerCreateViewModel();
+            var employees = GetEmployees();
+           var items = employees
+                .Select(employee => new SelectListItem
+                 {
+                     Text = $"{employee.FirstName } { employee.LastName}",
+                     Value = employee.Id.ToString()
+                 })
+                .ToList();
+
+            items.Insert(0, new SelectListItem
+            {
+                Text = "Assign employee",
+                Value = "0"
+            });
+            viewModel.Employees = items;
+            return View(viewModel);
         }
 
         // POST: Computer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Computer computer)
+        public async Task<ActionResult> Create(ComputerCreateViewModel viewModel)
         {
             try
             {
@@ -85,14 +130,41 @@ namespace WorkforceManagement.Controllers
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"INSERT INTO Computer 
-                           (Make, Manufacturer, PurchaseDate, DecomissionDate)
-                                              
-                                                VALUES (@make, @manufacturer, @purchaseDate, null)";
-                        cmd.Parameters.Add(new SqlParameter("@make", computer.Make));
-                        cmd.Parameters.Add(new SqlParameter("@manufacturer", computer.Manufacturer));
-                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", computer.PurchaseDate));
+                           (Make, Manufacturer, PurchaseDate)
+                                              OUTPUT INSERTED.Id
+                                                VALUES (@make, @manufacturer, @purchaseDate)";
+                        cmd.Parameters.Add(new SqlParameter("@make", viewModel.computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
+                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
+                        int i = 0;
+                        object a = cmd.ExecuteScalar();
+                        if (a != null)
+                            i = (int)a;
+                        //int compId = (int?)await cmd.ExecuteScalarAsync();
+                        viewModel.computer.Id = i;
 
-                        cmd.ExecuteNonQuery();
+
+                     if (viewModel.employeeId != 0)
+                        {
+                            cmd.CommandText = @"INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate)
+                                                OUTPUT INSERTED.Id
+                                                VALUES (@employeeId, @computerId, @assignDate, null)";
+                            DateTime currentDate = DateTime.Now;
+                            cmd.Parameters.Add(new SqlParameter("@employeeId", viewModel.employeeId));
+                            cmd.Parameters.Add(new SqlParameter("@computerId", i));
+                            cmd.Parameters.Add(new SqlParameter("@assignDate", currentDate));
+
+
+                            int newCEId = (int)cmd.ExecuteScalar();
+
+                            cmd.CommandText = @"UPDATE ComputerEmployee SET UnassignDate = @unassignDate WHERE employeeID = @employeeId AND computerId != @computerId";
+
+                            cmd.Parameters.Add(new SqlParameter("@unassignDate", currentDate));
+
+                            cmd.ExecuteScalar();
+                        }
+                       
+
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -159,7 +231,7 @@ namespace WorkforceManagement.Controllers
                         int rowsAffected = cmd.ExecuteNonQuery();
 
 
-                        if (rowsAffected > 0)
+                        if (rowsAffected == 0)
                         {
                             TempData["ErrorMessage"] = "This computer cannot be deleted because it is currently or previously assigned to an employee";
                         }
@@ -173,6 +245,31 @@ namespace WorkforceManagement.Controllers
                 return View();
             }
         }
+        private List<Employee> GetEmployees()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Id, FirstName, LastName FROM Employee";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Employee> employees = new List<Employee>();
+                    while (reader.Read())
+                    {
+                        employees.Add(new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                        });
+                    }
+
+                    reader.Close();
+
+                    return employees;
+                } } } 
         private Computer GetSingleComputer(int id)
         {
             Computer computer = null;
