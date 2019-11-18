@@ -5,12 +5,6 @@
 }
 
 <h1>Create</h1>
-<form asp-controller="Computer" asp-action="Index">
-    <p>
-        Title: <input type="text" name="SearchString">
-        <input type="submit" value="Filter" />
-    </p>
-</form>
 
 <h4>ComputerCreateViewModel</h4>
 <hr />
@@ -37,7 +31,7 @@
                 <div class="form-group">
                     <label asp-for="employeeId" class="control-label">Assign Employee</label>
                   
-                    <select asp-for="employeeId" asp-items="@Model.Employees"></select>
+                    <select asp-for="employee.Id" asp-items="@Model.Employees"></select>
                     <span asp-validation-for="employeeId" class="text-danger"></span>
                 </div></div>
                 <div class="form-group">
