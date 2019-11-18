@@ -215,7 +215,8 @@ namespace WorkforceManagement.Controllers
         // GET: TrainingProgram/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            TrainingProgram trainingProgram = GetTrainingProgram(id);
+            return View(trainingProgram);
         }
 
         // POST: TrainingProgram/Delete/5
@@ -223,11 +224,29 @@ namespace WorkforceManagement.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
+            TrainingProgram trainingProgram = GetTrainingProgram(id);
             try
             {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        // Delete the training program if it hasn't started yet
+                        if (trainingProgram.StartDate > DateTime.Now)
+                        {
+                            cmd.CommandText = @"DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id;
+                                                DELETE FROM TrainingProgram WHERE id = @id";
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+                            cmd.ExecuteNonQuery();
+                            return RedirectToAction(nameof(Index));
+                        }
+                        else // training program has already occured so it can't be deleted - somehow alert the user and take them back to the index/details page
+                        {
+                            return RedirectToAction(nameof(Index));
+                        }
+                    }
+                }
             }
             catch
             {
