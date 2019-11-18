@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using System.Linq;
 using WorkforceManagement.Models;
 using WorkforceManagement.Models.ViewModels;
 
@@ -104,12 +105,13 @@ namespace WorkforceManagement.Controllers
                         cmd.CommandText = @"INSERT INTO Employee
                                             ( FirstName, LastName, IsSupervisor, DepartmentId )
                                             VALUES
-                                            ( @firstName, @lastName, @departmentId, @isSupervisor )";
+                                            ( @firstName, @lastName, @isSupervisor, @departmentId )";
                         cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.Employee.FirstName));
                         cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.Employee.LastName));
                         cmd.Parameters.Add(new SqlParameter("@isSupervisor", viewModel.Employee.IsSupervisor));
                         cmd.Parameters.Add(new SqlParameter("@departmentId", viewModel.Employee.DepartmentId));
                         cmd.ExecuteNonQuery();
+                        cmd.Parameters.Clear();
                     }
                 }
                 return RedirectToAction(nameof(Index));
@@ -247,7 +249,7 @@ namespace WorkforceManagement.Controllers
                             };
                             anEmployee.Computer = aComputer;
                         }
-                        if (!reader.IsDBNull(reader.GetOrdinal("TrainingProgramId")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("TrainingProgramId")) && !anEmployee.TrainingPrograms.Any(tp => tp.Id == reader.GetInt32(reader.GetOrdinal("TrainingProgramId"))))
                         {
                             TrainingProgram aTrainingProgram = new TrainingProgram()
                             {
