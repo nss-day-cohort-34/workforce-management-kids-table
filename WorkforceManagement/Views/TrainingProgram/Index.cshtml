@@ -1,0 +1,60 @@
+﻿@model IEnumerable<WorkforceManagement.Models.TrainingProgram>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxAttendees)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @{ 
+                    var startDate = item.StartDate.ToShortDateString();
+                    @Html.DisplayFor(modelItem => startDate)
+                }
+            </td>
+            <td>
+                @{ 
+                    var endDate = item.EndDate.ToShortDateString();
+                    @Html.DisplayFor(modelItem => endDate)
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaxAttendees)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id=item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
