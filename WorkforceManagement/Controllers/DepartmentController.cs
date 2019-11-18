@@ -186,18 +186,30 @@ namespace WorkforceManagement.Controllers
         // GET: Department/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            var department = GetDepartmentById(id);
+            return View(department);
         }
 
         // POST: Department/Delete/5
         [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult DeleteConfirmed(int id)
         {
             try
             {
-                // TODO: Add delete logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            DELETE FROM Department WHERE Id = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
 
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -205,6 +217,7 @@ namespace WorkforceManagement.Controllers
                 return View();
             }
         }
+
 
         private Department GetDepartmentById(int id)
         {
