@@ -91,10 +91,7 @@
     }
 </div>
 <div>
-    @Html.ActionLink("Assign to Training Program", "AssignToTP", new { id = Model.Id }) |
-    <a asp-action="Index">Back to List</a>
-</div>
-<div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Assign to Training Program", "AssignTrainingProgram", new { id = Model.Id }) |
     <a asp-action="Index">Back to List</a>
 </div>
