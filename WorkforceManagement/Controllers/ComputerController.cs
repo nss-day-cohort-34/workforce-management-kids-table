@@ -37,22 +37,36 @@ namespace WorkforceManagement.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Id, Make, Manufacturer FROM Computer";
+                    cmd.CommandText = @"SELECT c.Id as 'ComputerId', c.Make, c.Manufacturer, 
+                         e.id as 'EmployeeId', e.FirstName, e.LastName, ce.AssignDate, ce.UnassignDate
+                        FROM Computer c LEFT JOIN ComputerEmployee ce ON CE.ComputerId = c.Id
+                         LEFT JOIN Employee e ON ce.employeeId=e.Id";
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Computer> computers = new List<Computer>();
                     Computer computer = null;
+                    Employee employee = null;
 
                     while (reader.Read())
                     {
                         computer = new Computer
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
                             Make = reader.GetString(reader.GetOrdinal("Make")),
                             Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
                         };
 
 
                         computers.Add(computer);
+                        if (reader.IsDBNull(reader.GetOrdinal("UnassignDate")) && !reader.IsDBNull(reader.GetOrdinal("assignDate")))
+                        {
+                            employee = new Employee
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                            };
+                            computer.employee = employee;
+                        }
                     }
                     reader.Close();
                     return View(computers);
@@ -97,15 +111,16 @@ namespace WorkforceManagement.Controllers
         {
             try
             {
+                
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"INSERT INTO Computer 
-                           (Make, Manufacturer, PurchaseDate, DecomissionDate)
+                           (Make, Manufacturer, PurchaseDate)
                                               
-                                                VALUES (@make, @manufacturer, @purchaseDate, null)";
+                                                VALUES (@make, @manufacturer, @purchaseDate)";
                         cmd.Parameters.Add(new SqlParameter("@make", viewModel.computer.Make));
                         cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
                         cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));

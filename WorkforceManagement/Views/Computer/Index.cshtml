@@ -21,8 +21,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Manufacturer)
             </th>
+
       
-            <th></th>
+            <th>Assigned Employee</th>
         </tr>
     </thead>
     <tbody>
@@ -37,11 +38,16 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Manufacturer)
             </td>
-       
             <td>
-                
-                @Html.ActionLink("Details", "Details", new {id=item.Id }) |
-         
+                @Html.DisplayFor(modelItem => item.employee.FirstName)
+                @Html.DisplayFor(modelItem => item.employee.LastName)
+
+            </td>
+
+            <td>
+
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+
             </td>
         </tr>
 }
