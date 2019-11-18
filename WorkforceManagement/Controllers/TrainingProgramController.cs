@@ -164,7 +164,7 @@ namespace WorkforceManagement.Controllers
             TrainingProgram trainingProgram = GetTrainingProgram(id);
             DateTime currentDate = DateTime.Now;
 
-            // Check if training program start date is in the future. If it is, instatiate the EditView so it can be edited, otherwise take the user 
+            // Check if training program start date is in the future. If it is, instatiate the EditView so it can be edited, otherwise take the user back to the index view 
             if (trainingProgram.StartDate > currentDate)
             {
                 TrainingProgramEditView viewModel = new TrainingProgramEditView
@@ -185,7 +185,16 @@ namespace WorkforceManagement.Controllers
             TrainingProgram trainingProgram = viewModel.TrainingProgram;
             try
             {
-                // TODO: Add update logic here
+                var updatedStudent = viewModel.Student;
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+
+                    }
+                        
+                }
 
                 return RedirectToAction(nameof(Index));
             }
