@@ -32,6 +32,7 @@ namespace WorkforceManagement.Models
         [Display(Name = "Department Name")]
         public int DepartmentId { get; set; }
         public Department Department { get; set; }
+        public int ComputerId { get; set; }
         public Computer Computer { get; set; }
         public List<TrainingProgram> TrainingPrograms { get; set; } = new List<TrainingProgram>();
     }

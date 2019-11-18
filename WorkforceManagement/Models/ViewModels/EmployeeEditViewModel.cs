@@ -22,5 +22,23 @@ namespace WorkforceManagement.Models.ViewModels
                 return selectItems;
             }
         }
+        public List<Computer> Computers { get; set; } = new List<Computer>();
+        public List<SelectListItem> ComputerOptions
+        {
+            get
+            {
+                if (Computers == null) return null;
+
+                List<SelectListItem> selectItems = Computers
+                    .Select(c => new SelectListItem($"{c.Make} ({c.Manufacturer})", c.Id.ToString()))
+                    .ToList();
+                selectItems.Insert(0, new SelectListItem
+                {
+                    Text = "Choose computer...",
+                    Value = ""
+                });
+                return selectItems;
+            }
+        }
     }
 }
