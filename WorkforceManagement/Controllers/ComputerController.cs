@@ -117,9 +117,9 @@ namespace WorkforceManagement.Controllers
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"INSERT INTO Computer 
-                           (Make, Manufacturer, PurchaseDate)
+                           (Make, Manufacturer, PurchaseDate, DecommissionDate)
                                               OUTPUT INSERTED.Id
-                                                VALUES (@make, @manufacturer, @purchaseDate)";
+                                                VALUES (@make, @manufacturer, @purchaseDate, null)";
                         cmd.Parameters.Add(new SqlParameter("@make", viewModel.computer.Make));
                         cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
                         cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
