@@ -22,7 +22,7 @@ namespace WorkforceManagement.Models.ViewModels
                 selectItems.Insert(0, new SelectListItem
                 {
                     Text = "Choose department...",
-                    Value = "0"
+                    Value = ""
                 });
 
                 return selectItems;

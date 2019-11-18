@@ -9,6 +9,12 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-controller="Computer" asp-action="Index">
+    <p>
+        Filter by Make or Manufacturer: <input type="text" name="searchString">
+        <input type="submit" value="Filter" />
+    </p>
+</form>
 <table class="table">
     <thead>
         <tr>
@@ -21,8 +27,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Manufacturer)
             </th>
+
       
-            <th></th>
+            <th>Assigned Employee</th>
         </tr>
     </thead>
     <tbody>
@@ -32,16 +39,23 @@
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Make)
+           
+                @Html.ActionLink(item.Make, "Details", "Computer", new{ id =item.Id })
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Manufacturer)
-            </td>
-       
             <td>
                 
-                @Html.ActionLink("Details", "Details", new {id=item.Id }) |
-         
+                @Html.ActionLink(item.Manufacturer, "Details", "Computer", new { id = item.Id })
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.employee.FirstName)
+                @Html.DisplayFor(modelItem => item.employee.LastName)
+
+            </td>
+
+            <td>
+
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+
             </td>
         </tr>
 }
