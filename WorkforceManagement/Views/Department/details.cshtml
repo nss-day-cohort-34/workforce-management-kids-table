@@ -38,5 +38,6 @@
         }
 </div>
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Back to List</a> |
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
 </div>
