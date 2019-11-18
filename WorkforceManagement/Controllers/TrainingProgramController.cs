@@ -191,9 +191,17 @@ namespace WorkforceManagement.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-
+                        cmd.CommandText = @"UPDATE TrainingProgram
+                                            SET Name = @name, StartDate = @startDate, EndDate = @endDate,
+                                                MaxAttendees = @maxAttendees
+                                            WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@name", updatedTrainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", updatedTrainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", updatedTrainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", updatedTrainingProgram.MaxAttendees));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.ExecuteNonQuery();
                     }
-                        
                 }
 
                 return RedirectToAction(nameof(Index));
