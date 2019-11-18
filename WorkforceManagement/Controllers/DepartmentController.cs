@@ -93,13 +93,16 @@ namespace WorkforceManagement.Controllers
                                 Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
                             };
                         }
-                        var emp = new Employee
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                        };
-                        department.Employees.Add(emp);
+                            var emp = new Employee
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            };
+                            department.Employees.Add(emp);
+                        }
                     }
                     reader.Close();
                     return View(department);
