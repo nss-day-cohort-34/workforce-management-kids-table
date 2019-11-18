@@ -110,8 +110,8 @@ namespace WorkforceManagement.Controllers
         //GET: Department/Create
         public ActionResult Create()
         {
-            var viewModel = new Department();
-            return View(viewModel);
+            var department = new Department();
+            return View(department);
         }
 
         // POST: Department/Create

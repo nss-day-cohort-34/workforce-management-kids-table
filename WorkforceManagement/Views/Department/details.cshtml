@@ -25,19 +25,17 @@
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Employees)
         </dt>
+        </dl>
         @foreach (var emp in Model.Employees)
         {
 
-                <dr>
-                    @Html.DisplayFor(modelItem => emp.FirstName)
-                </dr>
-                <dr>
-                    @Html.DisplayFor(modelItem => emp.LastName)
-                </dr>
+                <div>
+                    @emp.FirstName @emp.LastName
+                </div>
+               
                 
 
         }
-        </dl>
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
