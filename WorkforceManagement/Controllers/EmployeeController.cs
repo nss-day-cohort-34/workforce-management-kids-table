@@ -167,28 +167,50 @@ namespace WorkforceManagement.Controllers
             }
         }
 
-        // GET: Employee/Delete/5
-        public ActionResult Delete(int id)
+        // GET: Employee/AssignTrainingProgram/5
+        public ActionResult AssignTrainingProgram(int id)
         {
-            return View();
+            var employee = GetEmployeeById(id);
+            var viewModel = new EmployeeAssignTrainingProgramViewModel()
+            {
+                Employee = employee,
+                AllTrainingPrograms = GetAllFutureTrainingPrograms(),
+                SelectedTrainingProgramIds = employee.TrainingPrograms.Select(t => t.Id).ToList()
+            };
+            return View(viewModel);
         }
-
-        // POST: Employee/Delete/5
+        // POST: Employee/AssignTrainingProgram/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult AssignTrainingProgram(int id, EmployeeAssignTrainingProgramViewModel viewModel)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                // TODO: Add delete logic here
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "DELETE FROM EmployeeTraining WHERE EmployeeId = @id;";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.ExecuteNonQuery();
 
-                return RedirectToAction(nameof(Index));
+                    cmd.CommandText = @"INSERT INTO EmployeeTraining
+                                            ( EmployeeId, TrainingProgramId )
+                                            VALUES
+                                            ( @employeeId, @trainingProgramId )
+                                        ";
+                    foreach (var trainingProgramId in viewModel.SelectedTrainingProgramIds)
+                    {
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add(new SqlParameter("@employeeId", id));
+                        cmd.Parameters.Add(new SqlParameter("@trainingProgramId", trainingProgramId));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
-            catch
-            {
-                return View();
-            }
+            return RedirectToAction(nameof(Details), new { id });
         }
+
+
         private Employee GetEmployeeById(int id)
         {
             using (SqlConnection conn = Connection)
@@ -291,6 +313,37 @@ namespace WorkforceManagement.Controllers
                     reader.Close();
 
                     return departments;
+                }
+            }
+        }
+        private List<TrainingProgram> GetAllFutureTrainingPrograms()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
+                                        FROM TrainingProgram
+                                        WHERE StartDate > GETDATE()";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
+                        trainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        });
+                    }
+
+                    reader.Close();
+
+                    return trainingPrograms;
                 }
             }
         }
