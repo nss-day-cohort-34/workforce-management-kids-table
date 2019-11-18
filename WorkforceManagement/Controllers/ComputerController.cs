@@ -114,7 +114,7 @@ namespace WorkforceManagement.Controllers
                         viewModel.computer.Id = compId;
 
 
-                        if (viewModel.employeeId != 0)
+                    /*    if (viewModel.employeeId != 0)
                         {
                             cmd.CommandText = @"INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate)
                                                 OUTPUT INSERTED.Id
@@ -133,7 +133,7 @@ namespace WorkforceManagement.Controllers
 
                             cmd.ExecuteScalar();
                         }
-
+                        */
 
                         return RedirectToAction(nameof(Index));
                     }
