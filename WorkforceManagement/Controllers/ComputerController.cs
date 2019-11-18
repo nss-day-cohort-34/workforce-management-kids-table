@@ -93,7 +93,7 @@ namespace WorkforceManagement.Controllers
         // POST: Computer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ComputerCreateViewModel viewModel)
+        public async Task<ActionResult> Create(ComputerCreateViewModel viewModel)
         {
             try
             {
@@ -110,7 +110,7 @@ namespace WorkforceManagement.Controllers
                         cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
                         cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
 
-                        int compId = (int)cmd.ExecuteScalar();
+                        int compId = (int)await cmd.ExecuteScalarAsync();
                         viewModel.computer.Id = compId;
 
 
