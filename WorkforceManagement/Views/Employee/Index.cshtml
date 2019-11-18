@@ -21,12 +21,15 @@
             <th>
                 @Html.DisplayNameFor(model => model.DepartmentId)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsSupervisor)
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        <tr class="@(@item.IsSupervisor ? "supervisor" : null)">
             <td>
                 @Html.DisplayFor(modelItem => item.FirstName)
             </td>
@@ -37,9 +40,11 @@
                 @Html.DisplayFor(modelItem => item.Department.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                @Html.DisplayFor(modelItem => item.SupervisorStatus)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
             </td>
         </tr>
 }
