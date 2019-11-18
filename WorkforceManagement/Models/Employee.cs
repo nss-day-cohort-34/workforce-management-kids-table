@@ -15,6 +15,20 @@ namespace WorkforceManagement.Models
         public string LastName { get; set; }
         [Display(Name = "Supervisor")]
         public bool IsSupervisor { get; set; }
+        public string SupervisorStatus
+        {
+            get
+            {
+                if (IsSupervisor)
+                {
+                    return "Yes";
+                }
+                else
+                {
+                    return "No";
+                }
+            }
+        }
         [Display(Name = "Department Name")]
         public int DepartmentId { get; set; }
         public Department Department { get; set; }
