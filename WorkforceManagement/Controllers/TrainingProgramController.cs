@@ -185,7 +185,7 @@ namespace WorkforceManagement.Controllers
             TrainingProgram trainingProgram = viewModel.TrainingProgram;
             try
             {
-                var updatedStudent = viewModel.Student;
+                var updatedTrainingProgram = viewModel.TrainingProgram;
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
