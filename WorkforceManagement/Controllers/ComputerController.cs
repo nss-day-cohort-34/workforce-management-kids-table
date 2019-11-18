@@ -234,6 +234,7 @@ namespace WorkforceManagement.Controllers
                         if (rowsAffected == 0)
                         {
                             TempData["ErrorMessage"] = "This computer cannot be deleted because it is currently or previously assigned to an employee";
+                            return RedirectToAction(nameof(Delete), new { id });
                         }
 
                         return RedirectToAction(nameof(Index));

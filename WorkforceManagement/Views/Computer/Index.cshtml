@@ -39,10 +39,12 @@
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Make)
+           
+                @Html.ActionLink(item.Make, "Details", "Computer", new{ id =item.Id })
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Manufacturer)
+                
+                @Html.ActionLink(item.Manufacturer, "Details", "Computer", new { id = item.Id })
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.employee.FirstName)
