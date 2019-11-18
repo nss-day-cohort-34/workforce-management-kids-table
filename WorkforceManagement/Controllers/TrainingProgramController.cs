@@ -107,7 +107,11 @@ namespace WorkforceManagement.Controllers
                                     Id = employeeId,
                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                                    DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"))
+                                    DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Department = new Department
+                                    {
+                                        Name = reader.GetString(reader.GetOrdinal("DeptName"))
+                                    }
                                 };
 
                                 trainingProgram.Employees.Add(employee);
