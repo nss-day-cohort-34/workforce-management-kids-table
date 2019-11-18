@@ -231,7 +231,7 @@ namespace WorkforceManagement.Controllers
                         int rowsAffected = cmd.ExecuteNonQuery();
 
 
-                        if (rowsAffected > 0)
+                        if (rowsAffected == 0)
                         {
                             TempData["ErrorMessage"] = "This computer cannot be deleted because it is currently or previously assigned to an employee";
                         }
