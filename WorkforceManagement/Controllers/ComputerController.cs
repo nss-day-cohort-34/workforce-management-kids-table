@@ -72,19 +72,21 @@ namespace WorkforceManagement.Controllers
         public ActionResult Create()
         {
             var viewModel = new ComputerCreateViewModel();
-           var Employees = GetEmployees()
+            var employees = GetEmployees();
+           var items = employees
                 .Select(employee => new SelectListItem
                  {
-                     Text = $"{ employee.FirstName } { employee.LastName }",
+                     Text = $"{employee.FirstName } { employee.LastName}",
                      Value = employee.Id.ToString()
                  })
                 .ToList();
 
-            Employees.Insert(0, new SelectListItem
+            items.Insert(0, new SelectListItem
             {
                 Text = "Assign employee",
                 Value = "0"
             });
+            viewModel.Employees = items;
             return View(viewModel);
         }
 
