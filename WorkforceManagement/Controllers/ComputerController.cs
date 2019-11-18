@@ -111,7 +111,6 @@ namespace WorkforceManagement.Controllers
         {
             try
             {
-                
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
@@ -119,24 +118,27 @@ namespace WorkforceManagement.Controllers
                     {
                         cmd.CommandText = @"INSERT INTO Computer 
                            (Make, Manufacturer, PurchaseDate)
-                                              
+                                              OUTPUT INSERTED.Id
                                                 VALUES (@make, @manufacturer, @purchaseDate)";
                         cmd.Parameters.Add(new SqlParameter("@make", viewModel.computer.Make));
                         cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
                         cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
+                        int i = 0;
+                        object a = cmd.ExecuteScalar();
+                        if (a != null)
+                            i = (int)a;
+                        //int compId = (int?)await cmd.ExecuteScalarAsync();
+                        viewModel.computer.Id = i;
 
-                        int compId = (int)await cmd.ExecuteScalarAsync();
-                        viewModel.computer.Id = compId;
 
-
-                    /*    if (viewModel.employeeId != 0)
+                     if (viewModel.employeeId != 0)
                         {
                             cmd.CommandText = @"INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate)
                                                 OUTPUT INSERTED.Id
                                                 VALUES (@employeeId, @computerId, @assignDate, null)";
                             DateTime currentDate = DateTime.Now;
                             cmd.Parameters.Add(new SqlParameter("@employeeId", viewModel.employeeId));
-                            cmd.Parameters.Add(new SqlParameter("@computerId", compId));
+                            cmd.Parameters.Add(new SqlParameter("@computerId", i));
                             cmd.Parameters.Add(new SqlParameter("@assignDate", currentDate));
 
 
@@ -148,7 +150,7 @@ namespace WorkforceManagement.Controllers
 
                             cmd.ExecuteScalar();
                         }
-                        */
+                       
 
                         return RedirectToAction(nameof(Index));
                     }
