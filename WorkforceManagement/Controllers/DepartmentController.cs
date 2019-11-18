@@ -147,23 +147,39 @@ namespace WorkforceManagement.Controllers
         // GET: Department/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Department dep = GetDepartmentById(id);
+            return View(dep);
         }
 
         // POST: Department/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, Department department)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Department SET Name = @name, Budget = @budget
+                                                WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", department.Budget));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                department = new Department();
+                
+                return View(department);
             }
         }
 
@@ -187,6 +203,38 @@ namespace WorkforceManagement.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+        private Department GetDepartmentById(int id)
+        {
+            Department department = null;
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                      SELECT Id, Name, Budget FROM Department WHERE Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        department = new Department()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                        };
+                    }
+
+
+                    reader.Close();
+
+                    return department;
+                }
             }
         }
     }
