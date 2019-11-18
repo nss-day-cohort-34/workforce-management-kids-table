@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace WorkforceManagement.Models.ViewModels
     public class EmployeeAssignTrainingProgramViewModel
     {
         public Employee Employee { get; set; }
+        [Display(Name = "Training Programs")]
         public List<TrainingProgram> AllTrainingPrograms { get; set; } = new List<TrainingProgram>();
         public List<int> SelectedTrainingProgramIds { get; set; } = new List<int>();
 

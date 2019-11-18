@@ -38,7 +38,7 @@
 </div>
 <form asp-action="AssignTrainingProgram">
     <div class="form-group">
-        <label asp-for="SelectedTrainingProgramIds" class="control-label"></label>
+        <label asp-for="AllTrainingPrograms" class="control-label"></label>
         <select multiple asp-for="SelectedTrainingProgramIds" asp-items="@Model.TrainingProgramOptions"></select>
         <span asp-validation-for="SelectedTrainingProgramIds" class="text-danger"></span>
     </div>
