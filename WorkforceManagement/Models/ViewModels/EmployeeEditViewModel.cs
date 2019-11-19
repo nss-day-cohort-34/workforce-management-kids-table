@@ -40,5 +40,6 @@ namespace WorkforceManagement.Models.ViewModels
                 return selectItems;
             }
         }
+        public int? SelectedComputerId { get; set; }
     }
 }

@@ -125,12 +125,17 @@ namespace WorkforceManagement.Controllers
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
         {
+            var employee = GetEmployeeById(id);
             var viewModel = new EmployeeEditViewModel()
             {
-                Employee = GetEmployeeById(id),
+                Employee = employee,
                 Departments = GetAllDepartments(),
-                Computers = GetAllComputers()
+                Computers = GetAllComputers(),
             };
+            if (employee.Computer != null)
+            {
+                viewModel.SelectedComputerId = employee.Computer.Id;
+            }
             return View(viewModel);
         }
 
