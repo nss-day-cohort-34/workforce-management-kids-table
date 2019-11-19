@@ -379,9 +379,12 @@ namespace WorkforceManagement.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
-                                        FROM TrainingProgram
-                                        WHERE StartDate > GETDATE()";
+                    cmd.CommandText = @"SELECT t.Id, t.Name, COUNT(et.EmployeeId)
+                                            FROM TrainingProgram t
+                                             LEFT JOIN EmployeeTraining et ON et.TrainingProgramId = t.Id
+                                            WHERE StartDate > GETDATE()
+                                            GROUP BY t.Id, t.Name, t.MaxAttendees
+                                            HAVING COUNT(et.EmployeeId) < t.MaxAttendees";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
@@ -391,9 +394,7 @@ namespace WorkforceManagement.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
-                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
-                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
-                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                      
                         });
                     }
 
