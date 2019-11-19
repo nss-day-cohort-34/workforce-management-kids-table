@@ -230,7 +230,7 @@ namespace WorkforceManagement.Controllers
             var viewModel = new EmployeeAssignTrainingProgramViewModel()
             {
                 Employee = employee,
-                AllTrainingPrograms = GetAllFutureTrainingPrograms(),
+                AllTrainingPrograms = GetAllFutureTrainingPrograms(id),
                 SelectedTrainingProgramIds = employee.TrainingPrograms.Select(t => t.Id).ToList()
             };
             return View(viewModel);
@@ -372,7 +372,7 @@ namespace WorkforceManagement.Controllers
                 }
             }
         }
-        private List<TrainingProgram> GetAllFutureTrainingPrograms()
+        private List<TrainingProgram> GetAllFutureTrainingPrograms(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -399,6 +399,16 @@ namespace WorkforceManagement.Controllers
                     }
 
                     reader.Close();
+
+                    var employee = GetEmployeeById(id);
+
+                    foreach(var etp in employee.TrainingPrograms)
+                    {
+                        if (!trainingPrograms.Any(tp => tp.Id == etp.Id))
+                        {
+                            trainingPrograms.Add(etp);
+                        }
+                    }
 
                     return trainingPrograms;
                 }
