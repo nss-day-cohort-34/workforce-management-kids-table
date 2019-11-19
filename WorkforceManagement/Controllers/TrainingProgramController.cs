@@ -28,16 +28,26 @@ namespace WorkforceManagement.Controllers
             }
         }
         // GET: TrainingProgram
-        public ActionResult Index()
+        public ActionResult Index(string q)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
+                    if (q == "past")
+                    {
+                        cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
                                         FROM TrainingProgram
-                                        WHERE StartDate > GETDATE()";
+                                        WHERE StartDate < GETDATE()";
+                    }
+                    else
+                    {
+                        cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
+                                        FROM TrainingProgram
+                                        WHERE StartDate >= GETDATE()";
+                    }
+
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();

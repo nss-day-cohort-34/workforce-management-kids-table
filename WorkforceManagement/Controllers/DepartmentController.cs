@@ -147,46 +147,114 @@ namespace WorkforceManagement.Controllers
         // GET: Department/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Department dep = GetDepartmentById(id);
+            return View(dep);
         }
 
         // POST: Department/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, Department department)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Department SET Name = @name, Budget = @budget
+                                                WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", department.Budget));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                department = new Department();
+                
+                return View(department);
             }
         }
 
         // GET: Department/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            var department = GetDepartmentById(id);
+            return View(department);
         }
 
         // POST: Department/Delete/5
         [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult DeleteConfirmed(int id)
         {
             try
             {
-                // TODO: Add delete logic here
 
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            DELETE FROM Department WHERE Id = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                var errMsg = TempData["ErrorMessage"] as string;
+                TempData["ErrorMessage"] = "You cannot delete a department that currently has employees!";
+                return RedirectToAction(nameof(Delete));
+            }
+        }
+
+
+        private Department GetDepartmentById(int id)
+        {
+            Department department = null;
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                      SELECT d.Id as depId, d.Name, d.Budget, Count(e.Id) as EmployeeCount
+                                       FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                       WHERE d.Id = @id
+                                       Group By d.Id, d.Name, d.Budget";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        department = new Department()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("depId")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            EmployeeCount = reader.GetInt32(reader.GetOrdinal("EmployeeCount")),
+                        };
+                    }
+
+
+                    reader.Close();
+
+                    return department;
+                }
             }
         }
     }
