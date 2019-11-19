@@ -4,39 +4,48 @@
     ViewData["Title"] = "details";
 }
 
-<h1>details</h1>
+    <h1>@($"{this.Model.Name}")</h1>
 
-<div>
-    <h4>@($"{this.Model.Name}")</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Budget)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Budget)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Employees)
-        </dt>
+    <div>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Budget)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Budget)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Employees):
+            </dt>
         </dl>
-        @foreach (var emp in Model.Employees)
-        {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.ActionLink("First Name", "Details", new { orderby = "firstname" })
+                    </th>
+                    <th>
+                        @Html.ActionLink("Last Name", "Details", new { orderby = "lastname" })
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Employee employee in Model.Employees)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => employee.FirstName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => employee.LastName)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-                <div>
-                    @emp.FirstName @emp.LastName
-                </div>
-               
-                
-
-        }
-</div>
+    </div>
 <div>
     <a asp-action="Index">Back to List</a> |
     @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
