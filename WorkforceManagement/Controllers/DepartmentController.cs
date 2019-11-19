@@ -198,6 +198,7 @@ namespace WorkforceManagement.Controllers
         {
             try
             {
+
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
@@ -214,7 +215,9 @@ namespace WorkforceManagement.Controllers
             }
             catch
             {
-                return View();
+                var errMsg = TempData["ErrorMessage"] as string;
+                TempData["ErrorMessage"] = "You cannot delete a department that currently has employees!";
+                return RedirectToAction(nameof(Delete));
             }
         }
 
@@ -229,7 +232,10 @@ namespace WorkforceManagement.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                      SELECT Id, Name, Budget FROM Department WHERE Id = @id";
+                      SELECT d.Id as depId, d.Name, d.Budget, Count(e.Id) as EmployeeCount
+                                       FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                       WHERE d.Id = @id
+                                       Group By d.Id, d.Name, d.Budget";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -237,9 +243,10 @@ namespace WorkforceManagement.Controllers
                     {
                         department = new Department()
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("depId")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            EmployeeCount = reader.GetInt32(reader.GetOrdinal("EmployeeCount")),
                         };
                     }
 
