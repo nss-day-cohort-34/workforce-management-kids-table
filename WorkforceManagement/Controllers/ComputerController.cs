@@ -137,7 +137,7 @@ namespace WorkforceManagement.Controllers
                         cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.computer.Manufacturer));
                         cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.computer.PurchaseDate));
                         int i = 0;
-                        object a = cmd.ExecuteScalar();
+                        object a =await cmd.ExecuteScalarAsync();
                         if (a != null)
                             i = (int)a;
                         //int compId = (int?)await cmd.ExecuteScalarAsync();
