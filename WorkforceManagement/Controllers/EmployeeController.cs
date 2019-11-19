@@ -125,21 +125,11 @@ namespace WorkforceManagement.Controllers
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
         {
-            var employee = GetEmployeeById(id);
             var viewModel = new EmployeeEditViewModel()
             {
-                Employee = employee,
-                Departments = GetAllDepartments(),
+                Employee = GetEmployeeById(id),
+                Departments = GetAllDepartments()
             };
-            if (employee.Computer != null)
-            {
-                viewModel.SelectedComputerId = employee.Computer.Id;
-                viewModel.Computers = GetUnassignedComputersAndCurrentEmployeeComputer(id, employee.Computer.Id);
-            }
-            else
-            {
-                viewModel.Computers = GetUnassignedComputersAndCurrentEmployeeComputer(id, null);
-            }
             return View(viewModel);
         }
 
@@ -160,40 +150,13 @@ namespace WorkforceManagement.Controllers
                                             SET FirstName = @firstName, LastName = @lastName, 
                                             IsSupervisor = @isSupervisor, DepartmentId = @departmentId
                                             WHERE Id = @id;
-                                            ";
+                                           ";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
                         cmd.Parameters.Add(new SqlParameter("@firstName", viewModel.Employee.FirstName));
                         cmd.Parameters.Add(new SqlParameter("@lastName", viewModel.Employee.LastName));
                         cmd.Parameters.Add(new SqlParameter("@isSupervisor", viewModel.Employee.IsSupervisor));
                         cmd.Parameters.Add(new SqlParameter("@departmentId", viewModel.Employee.DepartmentId));
                         cmd.ExecuteNonQuery();
-
-                        var employee = GetEmployeeById(id);
-                        if (viewModel.SelectedComputerId.HasValue)
-                        {
-                            if (employee.Computer == null)
-                            {
-                                cmd.CommandText = @"INSERT INTO ComputerEmployee
-                                                    ( ComputerId, EmployeeId, AssignDate )
-                                                    VALUES ( @computerId, @employeeId, GETDATE() )";
-                                cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.SelectedComputerId));
-                                cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                                cmd.ExecuteNonQuery();
-                            }
-                            else if (employee.Computer.Id != viewModel.SelectedComputerId)
-                            {
-                                cmd.CommandText = @"UPDATE ComputerEmployee
-                                                    SET UnassignDate = GETDATE()
-                                                    WHERE ComputerId = @oldComputerId AND EmployeeId = @employeeId;
-                                                    INSERT INTO ComputerEmployee
-                                                    ( ComputerId, EmployeeId, AssignDate )
-                                                    VALUES ( @computerId, @employeeId, GETDATE() )";
-                                cmd.Parameters.Add(new SqlParameter("@oldComputerId", employee.Computer.Id));
-                                cmd.Parameters.Add(new SqlParameter("@computerId", viewModel.SelectedComputerId));
-                                cmd.Parameters.Add(new SqlParameter("@employeeId", id));
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
                     }
                 }
                 return RedirectToAction(nameof(Index));
@@ -201,25 +164,6 @@ namespace WorkforceManagement.Controllers
             catch
             {
                 return View();
-            }
-        }
-
-        public ActionResult UnassignComputer(int employeeId, int computerId)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"UPDATE ComputerEmployee
-                                        SET UnassignDate = GETDATE()
-                                        WHERE ComputerId = @computerId AND EmployeeId = @employeeId AND UnassignDate IS NULL
-                                        ";
-                    cmd.Parameters.Add(new SqlParameter("@computerId", computerId));
-                    cmd.Parameters.Add(new SqlParameter("@employeeId", employeeId));
-                    cmd.ExecuteNonQuery();
-                }
-                return RedirectToAction(nameof(Details), new { id = employeeId });
             }
         }
 
@@ -379,9 +323,12 @@ namespace WorkforceManagement.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees
-                                        FROM TrainingProgram
-                                        WHERE StartDate > GETDATE()";
+                    cmd.CommandText = @"SELECT t.Id, t.Name, COUNT(et.EmployeeId)
+                                            FROM TrainingProgram t
+                                             LEFT JOIN EmployeeTraining et ON et.TrainingProgramId = t.Id
+                                            WHERE StartDate > GETDATE()
+                                            GROUP BY t.Id, t.Name, t.MaxAttendees
+                                            HAVING COUNT(et.EmployeeId) < t.MaxAttendees";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
@@ -391,82 +338,13 @@ namespace WorkforceManagement.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
-                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
-                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
-                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                           
                         });
                     }
 
                     reader.Close();
 
                     return trainingPrograms;
-                }
-            }
-        }
-        private List<Computer> GetUnassignedComputersAndCurrentEmployeeComputer(int employeeId, int? computerId)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"SELECT c.Id AS 'ComputerId', c.PurchaseDate, c.DecomissionDate, c.Make, c.Manufacturer
-                                            FROM Computer c
-                                            LEFT JOIN ComputerEmployee ce ON ce.ComputerId = c.Id
-                                            WHERE ce.id IS NULL
-	                                            OR c.id IN (
-		                                            SELECT ce.ComputerId
-		                                            FROM ComputerEmployee ce
-		                                            WHERE ce.UnassignDate IS NOT NULL AND c.DecomissionDate IS NULL
-				                                            AND ce.ComputerId NOT IN (
-					                                            SELECT ce.ComputerId
-					                                            FROM ComputerEmployee ce
-					                                            WHERE ce.UnassignDate IS NULL
-				                                            )
-		                                            )
-                                        ";
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    List<Computer> computers = new List<Computer>();
-
-                    Computer computer = null;
-
-                    while (reader.Read())
-                    {
-                        computer = new Computer
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                        };
-                        computers.Add(computer);
-                    }
-                    reader.Close();
-
-
-                    if (computerId.HasValue)
-                    {
-                        cmd.CommandText = @"SELECT c.Id AS ComputerId, c.Make, c.Manufacturer
-                                            FROM ComputerEmployee ce
-                                            LEFT JOIN Computer c ON ce.ComputerId = c.Id
-                                            WHERE ce.ComputerId = @computerId AND ce.EmployeeId = @employeeId AND ce.UnassignDate IS NULL";
-                        cmd.Parameters.Add(new SqlParameter("@computerId", computerId));
-                        cmd.Parameters.Add(new SqlParameter("@employeeId", employeeId));
-                        reader = cmd.ExecuteReader();
-                        if (reader.Read())
-                        {
-                            computer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer"))
-                            };
-                            computers.Add(computer);
-                        }
-                    }
-                    reader.Close();
-
-                    return computers;
                 }
             }
         }
