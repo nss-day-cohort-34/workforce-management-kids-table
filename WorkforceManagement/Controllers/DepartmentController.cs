@@ -81,7 +81,7 @@ namespace WorkforceManagement.Controllers
                                         WHERE d.Id = @id
                                         Order By e.FirstName";
                     }
-                    if (orderby == "lastname")
+                    else if (orderby == "lastname")
                     {
                         cmd.CommandText = @"SELECT d.Id as DepId, 
                                                 d.Name, 
