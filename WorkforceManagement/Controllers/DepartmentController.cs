@@ -63,14 +63,39 @@ namespace WorkforceManagement.Controllers
         }
 
         //GET: Department/Details/5
-        public ActionResult Details(int id)
+        public ActionResult Details(int id, string orderby)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT d.Id as DepId, 
+                    if (orderby == "firstname") {
+                        cmd.CommandText = @"SELECT d.Id as DepId, 
+                                                d.Name, 
+                                                d.Budget, 
+                                                e.Id as EmployeeId, 
+                                                e.FirstName,   
+                                                e.LastName 
+                                        FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                        WHERE d.Id = @id
+                                        Order By e.FirstName";
+                    }
+                    else if (orderby == "lastname")
+                    {
+                        cmd.CommandText = @"SELECT d.Id as DepId, 
+                                                d.Name, 
+                                                d.Budget, 
+                                                e.Id as EmployeeId, 
+                                                e.FirstName,   
+                                                e.LastName 
+                                        FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
+                                        WHERE d.Id = @id
+                                        Order By e.LastName";
+                    }
+                    else
+                    {
+                        cmd.CommandText = @"SELECT d.Id as DepId, 
                                                 d.Name, 
                                                 d.Budget, 
                                                 e.Id as EmployeeId, 
@@ -78,6 +103,7 @@ namespace WorkforceManagement.Controllers
                                                 e.LastName 
                                         FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
                                         WHERE d.Id = @id";
+                    }
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     var reader = cmd.ExecuteReader();
 
