@@ -19,6 +19,8 @@
                 @Html.DisplayNameFor(model => model.Employees):
             </dt>
         </dl>
+        @if (Model.Employees.Count > 0)
+        {
         <table class="table">
             <thead>
                 <tr>
@@ -44,7 +46,12 @@
                 }
             </tbody>
         </table>
-
+        }
+        else {
+    <p>
+        This department does not currently have employees.
+    </p>
+        }
     </div>
 <div>
     <a asp-action="Index">Back to List</a> |

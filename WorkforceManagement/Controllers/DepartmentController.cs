@@ -38,6 +38,7 @@ namespace WorkforceManagement.Controllers
                                        SELECT d.Id, d.Name, d.Budget, Count(e.Id) as EmployeeCount
                                        FROM Department d LEFT JOIN Employee e on d.Id = e.DepartmentId
                                        Group By d.Id, d.Name, d.Budget
+                                       Order By d.Name
                                         ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
