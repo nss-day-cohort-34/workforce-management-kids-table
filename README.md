@@ -1,5 +1,4 @@
-# workforce-management-kids-table
-workforce-management-kids-table created by GitHub Classroom
+# Bangazon Workforce Management Application
 
 [Jacquelyn McCray](https://github.com/jkmccray)
 </br>
