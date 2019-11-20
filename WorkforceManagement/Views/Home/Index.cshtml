@@ -22,8 +22,6 @@
     var selectList = document.querySelector("#DepartmentSelector");
     selectList.addEventListener('change', (event) => {
         // make fetch call to the API Controller to get back JSON
-        console.log("You changed the select dropdown");
-        console.log(event.target.value);
         GetDeptInfo(parseInt(event.target.value));
     });
 
@@ -37,11 +35,8 @@
         return fetch("http://localhost:5000/api/chart/" + id)
             .then(response => response.json())
             .then((response) => {
-                console.log(response)
                 employeeLabels = response.map(employee => `${employee.firstName} ${employee.lastName}`);
                 employeeData = response.map(employee => employee.totalTrainingPrograms);
-                console.log(employeeLabels);
-                console.log(employeeData);
 
                 if (chart) { chart.destroy(); }
 
