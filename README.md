@@ -1,6 +1,6 @@
 # Bangazon Workforce Management Application
 
-### Development Team:
+**Development Team:**
 </br>
 [Jacquelyn McCray](https://github.com/jkmccray)
 </br>
