@@ -1,5 +1,6 @@
 # Bangazon Workforce Management Application
 
+Development Team:
 [Jacquelyn McCray](https://github.com/jkmccray)
 </br>
 [Michelle Jimenez](https://github.com/mjimeneztn)
