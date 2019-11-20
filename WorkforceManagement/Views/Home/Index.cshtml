@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
 
 <div>
@@ -52,12 +51,29 @@
                         barThickness: 6,
                         maxBarThickness: 8,
                         minBarLength: 2,
-                        data: employeeData
+                        data: employeeData,
+                        //backgroundColor: 'rgb(0,0,0,0.3)'
                     }]
                 },
 
                 // Configuration options go here
-                options: {}
+                    options: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Training Programs per Employee'
+                        },
+                        scales: {
+                          yAxes: [{
+                            ticks: {
+                              beginAtZero: true,
+                              callback: function(value) {if (value % 1 === 0) {return value;}}
+                            }
+                          }]
+                        }
+                    }
                 });
                 
             });
