@@ -1,8 +1,73 @@
-﻿@{
+﻿@model WorkforceManagement.Models.ViewModels.HomeView
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<div>
+    <label asp-for="Departments" class="control-label"></label>
+    <select asp-for="DepartmentId" asp-items="@Model.DepartmentOptions" id="DepartmentSelector"></select>
+</div>
+
+<canvas id="myChart"></canvas>
+
+<script>
+    // Get reference to the select list
+    var selectList = document.querySelector("#DepartmentSelector");
+    selectList.addEventListener('change', (event) => {
+        // make fetch call to the API Controller to get back JSON
+        console.log("You changed the select dropdown");
+        console.log(event.target.value);
+        GetDeptInfo(parseInt(event.target.value));
+    });
+
+    let employeeLabels = []
+    let employeeData = []
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart;
+
+    function GetDeptInfo(id) {
+        return fetch("http://localhost:5000/api/chart/" + id)
+            .then(response => response.json())
+            .then((response) => {
+                console.log(response)
+                employeeLabels = response.map(employee => `${employee.firstName} ${employee.lastName}`);
+                employeeData = response.map(employee => employee.totalTrainingPrograms);
+                console.log(employeeLabels);
+                console.log(employeeData);
+
+                if (chart) { chart.destroy(); }
+
+                chart = new Chart(ctx, {
+                // The type of chart we want to create
+                type: 'bar',
+
+                // The data for our dataset
+                data: {
+                    labels: employeeLabels,
+                    datasets: [{
+                        barPercentage: 0.5,
+                        barThickness: 6,
+                        maxBarThickness: 8,
+                        minBarLength: 2,
+                        data: employeeData
+                    }]
+                },
+
+                // Configuration options go here
+                options: {}
+                });
+                
+            });
+    }
+
+    
+    
+</script>
